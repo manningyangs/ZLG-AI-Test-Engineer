@@ -1,7 +1,9 @@
-"""PLAT-01：页面工厂与系统设置页。
+"""PLAT-01 / P2-D：页面工厂与系统设置页。
 
 - ``create_pages``：创建 10 个一级页面并注册到主窗口；
-- 前 9 个为占位页（居中阶段提示 + Loading/Empty/Error 通用状态组件）；
+  P2-D 起四个页面为正式实现：ai_design（AI 工作台）、test_management
+  （用例编辑器）、execution（运行监控）、results（结果页）；
+  其余为占位页（居中阶段提示 + Loading/Empty/Error 通用状态组件）；
 - ``SettingsPage``：系统设置表单，读写 Settings（容错接入 app/config 约定接口，
   缺失时降级为 dataclass 默认值，状态标签提示“配置服务不可用”）。
 
@@ -28,9 +30,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from zlg_ai_test_engine.ui.case_editor import CaseEditorPage
 from zlg_ai_test_engine.ui.main_window import PAGE_DEFS, MainWindow
+from zlg_ai_test_engine.ui.monitor import MonitorPage
+from zlg_ai_test_engine.ui.results import ResultsPage
+from zlg_ai_test_engine.ui.run_controller import RunController
 from zlg_ai_test_engine.ui.theme import COLOR_FAIL, COLOR_PASS, COLOR_PENDING
 from zlg_ai_test_engine.ui.widgets import EmptyStateWidget, ErrorStateWidget, LoadingStateWidget
+from zlg_ai_test_engine.ui.workbench import AIWorkbenchPage
 
 #: 设置表单对应的 Settings 字段（任务书 PLAT-01 接口约定）
 SETTING_FIELDS: tuple[str, ...] = (
@@ -225,6 +232,9 @@ class SettingsPage(QWidget):
     - 保存时写 Settings 并（若有）经 SecretStore 保存 API Key；
     - 修改未保存时 ``is_dirty()`` 为 True，供主窗口关闭确认使用。
     """
+
+    #: 页面标题（MainWindow 关闭确认文案使用）
+    page_title = "系统设置"
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -466,10 +476,60 @@ class SettingsPage(QWidget):
 
 
 def create_pages(main_window: "MainWindow") -> None:
-    """创建 10 个一级页面并按导航顺序注册到主窗口。"""
+    """创建 10 个一级页面并按导航顺序注册到主窗口。
+
+    P2-D 装配：AI 工作台定稿 → 用例编辑器；监控页运行 → 结果页渲染；
+    RunController 统一转发状态迁移；顶栏常驻急停接到监控页急停处理。
+    """
+    # -- P2-D 四个正式页面与控制器 -----------------------------------------
+    editor = CaseEditorPage()
+    workbench = AIWorkbenchPage()
+    controller = RunController()
+    monitor = MonitorPage(
+        controller=controller, main_window=main_window, editor=editor
+    )
+    results = ResultsPage()
+
+    # 工作台定稿 → 编辑器载入草案 → 跳转到编辑器页
+    workbench.draft_created.connect(editor.add_draft)
+
+    def _goto_editor() -> None:
+        for index, (page_id, _title) in enumerate(PAGE_DEFS):
+            if page_id == "test_management":
+                main_window.nav_list.setCurrentRow(index)
+                break
+
+    workbench.draft_created.connect(_goto_editor)
+
+    # 监控运行结束 → 结果页渲染
+    monitor.run_finished.connect(results.set_record)
+
+    # 顶栏常驻急停 → 监控页急停处理（orchestrator.cancel）
+    main_window.estop_button.clicked.connect(monitor.emergency_stop)
+
+    # 由管线装配离线 Mock 编排器（state_listener → 控制器跨线程信号）
+    try:
+        from zlg_ai_test_engine.application.pipeline import (  # noqa: PLC0415
+            build_mock_orchestrator,
+        )
+
+        orchestrator = build_mock_orchestrator(state_listener=controller.on_record)
+        monitor.set_orchestrator(orchestrator)
+    except Exception:  # noqa: BLE001 — 管线不可用时监控页运行按钮降级提示
+        monitor.set_orchestrator(None)
+
+    special: dict[str, QWidget] = {
+        "ai_design": workbench,
+        "test_management": editor,
+        "execution": monitor,
+        "results": results,
+    }
+
     for page_id, title in PAGE_DEFS:
         if page_id == "settings":
             widget: QWidget = SettingsPage()
+        elif page_id in special:
+            widget = special[page_id]
         else:
             widget = PlaceholderPage(title)
         main_window.register_page(page_id, widget)

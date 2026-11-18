@@ -226,6 +226,14 @@ QLabel[state="fail"] {
 QLabel[state="pending"] {
     color: #ea580c;
 }
+/* 推断项（比待确认橙更深的琥珀色，用于三态可视化） */
+QLabel[state="inferred"] {
+    color: #b45309;
+}
+/* 中性统计（NotEvaluated 等） */
+QLabel[state="neutral"] {
+    color: #64748b;
+}
 """
 
 # -- 深色主题 ---------------------------------------------------------------
@@ -437,6 +445,14 @@ QLabel[state="fail"] {
 }
 QLabel[state="pending"] {
     color: #ea580c;
+}
+/* 推断项（比待确认橙更深的琥珀色，用于三态可视化） */
+QLabel[state="inferred"] {
+    color: #f59e0b;
+}
+/* 中性统计（NotEvaluated 等） */
+QLabel[state="neutral"] {
+    color: #9aa5b3;
 }
 """
 

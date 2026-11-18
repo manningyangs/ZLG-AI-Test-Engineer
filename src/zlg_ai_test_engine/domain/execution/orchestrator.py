@@ -117,6 +117,8 @@ class RunRecord:
     cleanup_errors: list[str] = field(default_factory=list)
     runner_status: str | None = None
     ai_explanation: str | None = None
+    #: 原始证据（帧/信号/窗口，append-only 采集结果；REPORT-01 归档的数据源）
+    evidence: Any = None
 
     @property
     def summary(self) -> dict[str, int]:
@@ -154,6 +156,7 @@ class ExecutionOrchestrator:
         signal_ids: Mapping[str, int] | None = None,
         signal_decoder: Callable[[str, bytes], float | int] | None = None,
         ai_explainer: Callable[[Sequence[AssertionResult], Mapping[str, Any]], str] | None = None,
+        state_listener: Callable[[RunRecord], None] | None = None,
     ) -> None:
         self._adapter = adapter
         self._compiler = compiler
@@ -164,6 +167,8 @@ class ExecutionOrchestrator:
         self._signal_ids = dict(signal_ids or {})
         self._signal_decoder = signal_decoder
         self._ai_explainer = ai_explainer
+        #: 每次状态迁移后回调（供 UI 实时刷新；异常不得影响状态机）
+        self._state_listener = state_listener
         self._runs: dict[str, RunRecord] = {}
         self._cancel_flags: dict[str, bool] = {}
         self._runner: PlanRunner | None = None
@@ -197,6 +202,11 @@ class ExecutionOrchestrator:
         if reason:
             refs.append(reason)
         self._record("run.state_change", rec.run_id, refs=refs)
+        if self._state_listener is not None:
+            try:
+                self._state_listener(rec)
+            except Exception:  # noqa: BLE001 — UI 回调异常不得破坏状态机
+                pass
 
     # -- 提交与审批 -----------------------------------------------------------
 
@@ -316,6 +326,7 @@ class ExecutionOrchestrator:
             outcome: RunnerOutcome = runner.run(
                 rec.plan or {}, cancel_check=lambda: self._cancel_flags.get(run_id, False)
             )
+            rec.evidence = outcome.evidence  # 原始证据挂载（含取消/失败时已采集部分）
             rec.runner_status = outcome.status
             rec.cleanup_errors = list(outcome.cleanup_errors)
 

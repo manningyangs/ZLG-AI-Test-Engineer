@@ -58,7 +58,7 @@ py -m venv .venv
 .\scripts\dev.ps1         # launch desktop app (Windows)
 ```
 
-Status: P2 in progress (ARCH-01, CORE-01, PLAT-01/02/03, MOCK-01, HOST-01, DATA-01, VALID-01, COMP-01, EXEC-01a, JUDGE-01 done — see `docs/tasks/task_status.md`; 273 tests). No real hardware SDK integration before P0 vendor validation.
+Status: P2 nearly complete (all P1 tasks + DATA-01, VALID-01, COMP-01, EXEC-01a, JUDGE-01, UI-01, UI-02, REPORT-01 done — see `docs/tasks/task_status.md`; 310 tests). Remaining in P2: AI-01/02 (needs model API key). No real hardware SDK integration before P0 vendor validation.
 
 ### License
 
@@ -118,7 +118,7 @@ py -m venv .venv
 .\scripts\dev.ps1         # 启动桌面应用（Windows）
 ```
 
-进度：P2 进行中（ARCH-01、CORE-01、PLAT-01/02/03、MOCK-01、HOST-01、DATA-01、VALID-01、COMP-01、EXEC-01a、JUDGE-01 已完成，见 `docs/tasks/task_status.md`，273 项测试）；P0 厂商验证完成前不接入真实硬件 SDK。
+进度：P2 接近完成（P1 全部 + DATA-01、VALID-01、COMP-01、EXEC-01a、JUDGE-01、UI-01、UI-02、REPORT-01 已完成，见 `docs/tasks/task_status.md`，310 项测试）。P2 剩余 AI-01/02（需模型 API Key）；P0 厂商验证完成前不接入真实硬件 SDK。
 
 ### 许可
 

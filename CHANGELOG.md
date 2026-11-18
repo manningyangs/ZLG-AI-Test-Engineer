@@ -2,6 +2,35 @@
 
 本项目遵循语义化版本；对用户可见的变更记录于此。格式参考 [Keep a Changelog]。
 
+## [0.4.0] - 2026-11-18
+
+P2-D 批次：UI-01 + UI-02 + REPORT-01（离线闭环的界面与报告层）+ 集成门面。
+
+### 新增
+
+- **UI-01 AI 工作台与用例编辑器**：三态分组（已读取/推断橙标/待确认勾选），全部待确认
+  确认后方可生成草案（离线桩 generation_stub，徽标注明 AI-01 未接入）；工作台→编辑器联动；
+  编辑器步骤表/属性面板（ACTION_SPECS 风险等级、来源标注）、dirty 管理与
+  主窗口关闭"当前页+设置页"泛化确认。
+- **UI-02 运行监控与结果页**：RunController（QThread 后台 start、跨线程 state_changed 信号、
+  线程安全 cancel）；审批弹窗、Failed/Clarification 原因展示、步骤树 verdict 叠加、
+  Trace（evidence.frames）、四色统计；急停按钮运行中启用并接 orchestrator.cancel；
+  结果页四色卡片、断言表着色、AI 解释"建议/推测，不覆盖机器判定"角标、HTML 导出
+  （reporting 缺失时降级不崩）。
+- **REPORT-01 证据与报告**：`build_run_result`（run/ir/plan/summary/results/evidence 全量
+  JSON 化）；EvidenceStore append-only 归档（frames/signals JSONL + meta 快照 + EvidenceArtifact
+  入库，重复调用只追加）；HtmlReportExporter（自包含、阈值来源/inputs_digest 复算说明、
+  四色卡片）；PdfReportExporter（QTextDocument+QPdfWriter，offscreen 兜底）。文档 docs/reports.md。
+- **集成门面 application/pipeline.py**：build_mock_orchestrator（Mock+VALID+COMP+EXEC 一键装配、
+  离线演示资产策略并注明真实项目走 ProjectService）+ load_example_irs；RunRecord.evidence
+  原始证据挂载（取消/失败保留已采集部分）；状态迁移监听钩子（UI 实时刷新，回调异常不破坏状态机）。
+
+### 已知限制
+
+- 工作台生成为关键词离线桩，AI-01（真实 LLM）待模型凭据接入；L1 发送需注入授权参数
+  （UI 不开权限，符合安全默认）。
+- 编辑器"保存"为内存快照（持久化随工程存储接入）；PDF 导出需要图形环境（HTML 永远可用）。
+
 ## [0.3.0] - 2026-11-18
 
 P2 首批任务：DATA-01 + VALID-01 + COMP-01 + EXEC-01a + JUDGE-01（离线生成-校验-执行-判定链路打通）。

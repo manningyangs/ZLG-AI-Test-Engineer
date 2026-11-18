@@ -311,31 +311,51 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------ 关闭
 
+    def _dirty_page(self) -> QWidget | None:
+        """探测存在未保存更改的页面：当前页优先，其次系统设置页（去重）。
+
+        泛化自原“设置页 dirty 检查”：凡暴露 ``is_dirty()`` 的页面（设置页、
+        用例编辑器等）在关闭时都会被探测到，既有设置页行为保持不变。
+        """
+        candidates: list[QWidget] = []
+        current = self.stack.currentWidget()
+        if current is not None:
+            candidates.append(current)
+        if self._settings_page is not None and self._settings_page is not current:
+            candidates.append(self._settings_page)
+        for page in candidates:
+            checker = getattr(page, "is_dirty", None)
+            if callable(checker) and checker():
+                return page
+        return None
+
     def closeEvent(self, event: QCloseEvent) -> None:
-        """关闭时若设置页有未保存更改，提示保存/放弃/取消（第 11.3 节）。"""
-        page = self._settings_page
-        is_dirty = getattr(page, "is_dirty", None)
-        if page is not None and callable(is_dirty) and is_dirty():
+        """关闭时若当前页/设置页有未保存更改，提示保存/放弃/取消（第 11.3 节）。"""
+        page = self._dirty_page()
+        if page is not None:
+            name = getattr(page, "page_title", None) or (
+                "系统设置" if page is self._settings_page else "当前页面"
+            )
             box = QMessageBox(self)
             box.setIcon(QMessageBox.Icon.Question)
             box.setWindowTitle("未保存的更改")
-            box.setText("“系统设置”存在未保存的更改。关闭前是否保存？")
+            box.setText(f"“{name}”存在未保存的更改。关闭前是否保存？")
             save_btn = box.addButton("保存", QMessageBox.ButtonRole.AcceptRole)
             discard_btn = box.addButton("放弃", QMessageBox.ButtonRole.DestructiveRole)
             cancel_btn = box.addButton("取消", QMessageBox.ButtonRole.RejectRole)
             box.setDefaultButton(save_btn)  # type: ignore[arg-type]
             box.exec()
             clicked = box.clickedButton()
-            if clicked is cancel_btn:
+            if clicked == cancel_btn:
                 event.ignore()
                 return
-            if clicked is save_btn:
+            if clicked == save_btn:
                 save = getattr(page, "save", None)
                 if callable(save) and not save():
                     # 保存失败：中止关闭，避免丢失更改
                     event.ignore()
                     return
-            elif clicked is discard_btn:
+            elif clicked == discard_btn:
                 clear_dirty = getattr(page, "clear_dirty", None)
                 if callable(clear_dirty):
                     clear_dirty()
