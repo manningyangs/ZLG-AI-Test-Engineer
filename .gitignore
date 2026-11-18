@@ -1,2 +1,22 @@
 .screenshots/
 *.tmp
+
+# 厂商软件/SDK/手册 — 不入库（P0-06 合规约束）
+vendor_sdk_local/
+ZXDoc_um.pdf
+ZXDoc_*.zip
+*.dll
+*.lib
+kerneldlls/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
