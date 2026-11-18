@@ -2,6 +2,40 @@
 
 本项目遵循语义化版本；对用户可见的变更记录于此。格式参考 [Keep a Changelog]。
 
+## [0.6.0] - 2026-11-18
+
+AI-01 + AI-02：真实 LLM 接入层全部落地（实现与测试齐备，实测等 API Key）。
+
+### 新增
+
+- **AI-01 生成管线** `ai/prompt_builder.py` + `ai/generation_service.py`：系统规则提示 +
+  信封 Schema（decision/三组标注/ir）；**五道确定性后置门**——结构校验失败携带诊断
+  修复重试 ≤3、幻觉引用（上下文外 message/signal）服务级拒绝并澄清、来源不可溯自动转
+  待确认、草案强制含人工确认项（AI 草案永不直接可执行）、发送类强制 L1+审批改写；
+  Provenance（模型/提示版本/哈希/快照）+ ModelInvocation 审计（只记引用与用量，
+  不记工程内容与密钥）；13 项测试。
+- **AI-02 上下文管理** `ai/context_snapshot.py`：内容寻址快照（同输入同 id）、
+  资产哈希变化/丢失 → stale 检测、知识源元数据（来源/版本/适用协议型号/许可/机密标记）、
+  外发过滤（local_only 默认全禁、机密永不外发、不匹配显式排除留痕）；6 项测试。
+- **OpenAI-compatible Provider** `plugins/llm_providers/`：Transport 可注入（标准库
+  urllib 实现）、URL 规范化、structured_output 带 json_schema response_format 且
+  400 时降级一次、**错误分类映射**（401/403→AUTH 不重试、429→RATE_LIMIT、5xx→NETWORK、
+  超时→TIMEOUT，可重试类内部 ≤2 次）、全链路 API Key 脱敏（异常与日志断言）、
+  `build_provider(ConfigService)` 缺配置给出"请在设置页配置…"指引；40 项测试。
+- **评测接入**：`ai_eval.adapters.LLMGenerator`；`scripts/eval_ai.py --generator llm`
+  （真实 LLM 无已知缺口豁免，任何失败 exit 1；缺配置 exit 2 带指引）。
+
+### 验证
+
+- **强假 LLM 走真实管线复跑评测集 12/12**（桩基线 9/12 的 3 个上下文/冲突缺口全关闭）；
+  劣化模型幻觉引用仍被服务门拒绝（兜底不依赖模型诚实）。
+- 文档 `docs/ai/generation_pipeline.md`、`docs/ai/llm_provider.md`。
+
+### 待实测（阻塞：用户提供 API Key）
+
+- `eval_ai.py --generator llm` 真实模型跑批报告（AI-01 验收证据）、错误分布与 token 成本
+  （ModelInvocation 已留用量字段）。
+
 ## [0.5.0] - 2026-11-18
 
 P2 评测前置：AI-01 固定提示评测集（离线可跑，LLM 接入后直接复跑对比）。

@@ -52,3 +52,37 @@ class RefusingGenerator:
 
     def __call__(self, prompt: str, context: Mapping[str, Any]) -> GenerationOutput:
         return GenerationOutput(produced=False, hint=self.REFUSAL_HINT)
+
+
+class LLMGenerator:
+    """把 AI-01 GenerationService（真实 LLM 管线）接入评测协议。
+
+    - 决策为 refuse → produced=False，hint=拒绝原因（含澄清问题语义）；
+    - 决策为 draft → ir + 定稿副本（清空 unconfirmed_items，等价“人工确认后”）
+      供 confirmed_executable 检查。
+    """
+
+    def __init__(self, service: Any, *, name: str | None = None) -> None:
+        self._service = service
+        self.name = name or "llm_service"
+
+    def __call__(self, prompt: str, context: Mapping[str, Any]) -> GenerationOutput:
+        result = self._service.generate(prompt, context)
+        if not result.produced:
+            return GenerationOutput(
+                produced=False,
+                hint=result.refusal_reason,
+                unconfirmed=list(result.confirmation_items),
+                inferred=list(result.inferred_items),
+            )
+        ir = dict(result.ir or {})
+        confirmed = dict(ir)
+        confirmed["unconfirmed_items"] = []
+        return GenerationOutput(
+            produced=True,
+            ir=ir,
+            ir_confirmed=confirmed,
+            unconfirmed=list(ir.get("unconfirmed_items", [])),
+            inferred=list(result.inferred_items),
+            hint=result.refusal_reason,
+        )

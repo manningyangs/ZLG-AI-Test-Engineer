@@ -43,6 +43,10 @@ send_requires_approval / confirmed_executable(skip 若无定稿)`
 缺口由 `tests/eval/test_eval_set.py::STUB_KNOWN_GAPS` 钉住：桩行为变化或 AI-01 补齐后
 测试立即提示调整清单。
 
+**AI-01 管线基线（强假 LLM 走真实管线，2026-11-18）：12/12（100%）**——桩的 3 个缺口
+全部由管线后置门关闭，证明期望在 AI-01 下可达（`tests/eval/test_ai_eval_llm.py`）。
+真实模型跑批：`scripts/eval_ai.py --generator llm`（需 API Key，无已知缺口豁免）。
+
 ## 接入真实 LLMProvider（AI-01）
 
 实现 `ai_eval.evaluator.Generator` 协议即可（无需改评测器）：
