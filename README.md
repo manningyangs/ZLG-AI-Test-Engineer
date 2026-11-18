@@ -58,7 +58,7 @@ py -m venv .venv
 .\scripts\dev.ps1         # launch desktop app (Windows)
 ```
 
-Status: P1 in progress (ARCH-01 + PLAT-01/02/03 done, see `docs/tasks/task_status.md`). No real hardware SDK integration before P0 vendor validation.
+Status: P1 in progress (ARCH-01, CORE-01, PLAT-01/02/03, MOCK-01, HOST-01 done — see `docs/tasks/task_status.md`; 116 tests). No real hardware SDK integration before P0 vendor validation.
 
 ### License
 
@@ -118,7 +118,7 @@ py -m venv .venv
 .\scripts\dev.ps1         # 启动桌面应用（Windows）
 ```
 
-进度：P1 进行中（ARCH-01 与 PLAT-01/02/03 已完成，见 `docs/tasks/task_status.md`）；P0 厂商验证完成前不接入真实硬件 SDK。
+进度：P1 进行中（ARCH-01、CORE-01、PLAT-01/02/03、MOCK-01、HOST-01 已完成，见 `docs/tasks/task_status.md`，116 项测试）；P0 厂商验证完成前不接入真实硬件 SDK。
 
 ### 许可
 

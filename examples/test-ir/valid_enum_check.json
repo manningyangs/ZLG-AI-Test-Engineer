@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "BMS_CAN_BASIC",
+  "case_id": "BMS_ENUM_001",
+  "title": "BMS 工作状态枚举合法性（TC-04）",
+  "project_id": "PROJECT_DEMO",
+  "protocol": { "bus": "CAN", "database": "bms.dbc" },
+  "target": { "signal": "WorkState" },
+  "preconditions": [
+    { "action": "device_ready", "channel": 1 },
+    { "action": "measurement_started" }
+  ],
+  "steps": [
+    { "id": "S1", "action": "listen_bus", "duration_ms": 8000, "filter": { "can_id": 1113 } },
+    {
+      "id": "S2",
+      "action": "assert_enum",
+      "signal": "WorkState",
+      "allowed_values": [0, 1, 2, 3],
+      "evidence_source": "DBC_VALUE_TABLE_WorkState"
+    }
+  ],
+  "execution_policy": { "mode": "offline_only", "risk_level": "L0" },
+  "expected_result": "所有采样值均映射到已定义枚举，未定义值给出原始数据证据",
+  "provenance": { "database_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "unconfirmed_items": []
+}

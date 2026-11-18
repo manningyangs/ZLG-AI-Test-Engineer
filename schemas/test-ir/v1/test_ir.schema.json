@@ -1,0 +1,426 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zlg-ai-test-engineer.local/schemas/test-ir/v1/test_ir.schema.json",
+  "title": "ZLG AI Test Engineer Test IR",
+  "description": "Test IR v1.0：与协议、厂商 SDK、脚本语言无关的测试任务表示（任务书 CORE-01）。兼容性：新增可选字段向后兼容；删除/改语义需提升 major。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "title", "protocol", "steps", "execution_policy"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "description": "IR schema 版本；迁移接口见 domain/test_ir/validation.py"
+    },
+    "suite_id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+    "suite_name": { "type": "string", "maxLength": 255 },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_\\-]{1,64}$",
+      "description": "用例唯一标识"
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "project_id": { "type": "string" },
+    "priority": { "enum": ["P0", "P1", "P2", "P3"], "default": "P2" },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bus"],
+      "properties": {
+        "bus": { "enum": ["CAN", "CAN_FD"] },
+        "database": {
+          "type": "string",
+          "minLength": 1,
+          "description": "数据库资产引用（资产 id 或相对路径）"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "message": { "type": "string", "minLength": 1 },
+        "signal": { "type": "string", "minLength": 1 }
+      }
+    },
+    "database_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id"],
+        "properties": {
+          "asset_id": { "type": "string", "minLength": 1 },
+          "message": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+        }
+      },
+      "default": []
+    },
+    "preconditions": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/precondition_device_ready" },
+          { "$ref": "#/$defs/precondition_measurement_started" },
+          { "$ref": "#/$defs/precondition_listen_only" }
+        ]
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/step_listen_bus" },
+          { "$ref": "#/$defs/step_send_frame" },
+          { "$ref": "#/$defs/step_send_periodic" },
+          { "$ref": "#/$defs/step_monitor_signal" },
+          { "$ref": "#/$defs/step_wait_for_frame" },
+          { "$ref": "#/$defs/step_assert_cycle" },
+          { "$ref": "#/$defs/step_assert_range" },
+          { "$ref": "#/$defs/step_assert_enum" },
+          { "$ref": "#/$defs/step_assert_timeout" },
+          { "$ref": "#/$defs/step_inject_fault" },
+          { "$ref": "#/$defs/step_uds_request" }
+        ]
+      }
+    },
+    "execution_policy": { "$ref": "#/$defs/execution_policy" },
+    "expected_result": { "type": "string", "minLength": 1 },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "expected_evidence": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": { "enum": ["raw_frame", "timestamp", "signal_series", "log", "screenshot", "report"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "unconfirmed_items": {
+      "type": "array",
+      "default": [],
+      "description": "未确认参数；非空时执行校验（validate_executable）必须阻断",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+
+  "$defs": {
+    "hex_payload": {
+      "type": "string",
+      "pattern": "^([0-9a-fA-F]{2}){0,64}$",
+      "description": "十六进制载荷（偶数字符，最多 64 字节=CAN FD 上限）"
+    },
+    "message_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message"],
+      "properties": {
+        "asset_id": { "type": "string" },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "precondition_device_ready": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": { "const": "device_ready" },
+        "channel": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "precondition_measurement_started": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": { "action": { "const": "measurement_started" } }
+    },
+    "precondition_listen_only": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "enabled"],
+      "properties": {
+        "action": { "const": "listen_only" },
+        "enabled": { "type": "boolean" }
+      }
+    },
+
+    "execution_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "risk_level"],
+      "properties": {
+        "mode": { "enum": ["offline_only", "offline_then_hardware", "hardware"] },
+        "requires_approval": { "type": "boolean", "default": false },
+        "risk_level": { "enum": ["L0", "L1", "L2", "L3", "L4"] },
+        "max_duration_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "max_frames": { "type": "integer", "minimum": 1 },
+        "target_adapter": { "type": "string" },
+        "target_capabilities": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requirement_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "database_hash": {
+          "type": "string",
+          "pattern": "^(sha256:)?[0-9a-fA-F]{64}$"
+        },
+        "model": { "type": "string" },
+        "rule_version": { "type": "string" },
+        "confirmed_by": { "type": "string" },
+        "generated_at": { "type": "string" }
+      }
+    },
+
+    "step_listen_bus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "duration_ms"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "listen_bus" },
+        "description": { "type": "string" },
+        "duration_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "filter": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "can_id": { "type": "integer", "minimum": 0, "maximum": 536870911 },
+            "mask": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "step_send_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action"],
+      "anyOf": [
+        { "required": ["message_ref"] },
+        { "required": ["can_id", "payload_hex"] }
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "send_frame" },
+        "description": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 0 },
+        "message_ref": { "$ref": "#/$defs/message_ref" },
+        "can_id": { "type": "integer", "minimum": 0, "maximum": 536870911 },
+        "is_fd": { "type": "boolean", "default": false },
+        "is_extended": { "type": "boolean" },
+        "payload_hex": { "$ref": "#/$defs/hex_payload" },
+        "dlc": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "count": { "type": "integer", "minimum": 1, "maximum": 10000 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["payload_hex"],
+            "properties": { "is_fd": { "const": false } }
+          },
+          "then": {
+            "properties": {
+              "payload_hex": { "pattern": "^([0-9a-fA-F]{2}){0,8}$" },
+              "dlc": { "maximum": 8 }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["payload_hex"],
+            "properties": { "is_fd": { "const": true } }
+          },
+          "then": {
+            "properties": {
+              "payload_hex": { "pattern": "^([0-9a-fA-F]{2}){0,64}$" },
+              "dlc": { "maximum": 64 }
+            }
+          }
+        }
+      ]
+    },
+
+    "step_send_periodic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "period_ms"],
+      "anyOf": [
+        { "required": ["message_ref"] },
+        { "required": ["can_id", "payload_hex"] }
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "send_periodic" },
+        "description": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 0 },
+        "message_ref": { "$ref": "#/$defs/message_ref" },
+        "can_id": { "type": "integer", "minimum": 0, "maximum": 536870911 },
+        "is_fd": { "type": "boolean", "default": false },
+        "payload_hex": { "$ref": "#/$defs/hex_payload" },
+        "dlc": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "period_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "start_delay_ms": { "type": "integer", "minimum": 0 },
+        "duration_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "count": { "type": "integer", "minimum": 1 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["payload_hex"],
+            "properties": { "is_fd": { "const": false } }
+          },
+          "then": { "properties": { "dlc": { "maximum": 8 } } }
+        }
+      ]
+    },
+
+    "step_monitor_signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "message", "signal", "duration_ms"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "monitor_signal" },
+        "description": { "type": "string" },
+        "asset_id": { "type": "string" },
+        "message": { "type": "string", "minLength": 1 },
+        "signal": { "type": "string", "minLength": 1 },
+        "duration_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "sample_ms": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+
+    "step_wait_for_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "timeout_ms"],
+      "anyOf": [{ "required": ["message"] }, { "required": ["can_id"] }],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "wait_for_frame" },
+        "description": { "type": "string" },
+        "message": { "type": "string", "minLength": 1 },
+        "can_id": { "type": "integer", "minimum": 0, "maximum": 536870911 },
+        "timeout_ms": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+
+    "step_assert_cycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "message", "expected_period_ms", "tolerance_ms", "evidence_source"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "assert_cycle" },
+        "description": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 0 },
+        "message": { "type": "string", "minLength": 1 },
+        "expected_period_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "tolerance_ms": { "type": "number", "minimum": 0 },
+        "evidence_source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "阈值来源（需求 id/规范章节/人工确认），不得为空"
+        }
+      }
+    },
+
+    "step_assert_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "signal", "min", "max", "evidence_source"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "assert_range" },
+        "description": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 0 },
+        "signal": { "type": "string", "minLength": 1 },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string" },
+        "evidence_source": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "step_assert_enum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "signal", "allowed_values", "evidence_source"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "assert_enum" },
+        "description": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 0 },
+        "signal": { "type": "string", "minLength": 1 },
+        "allowed_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": ["integer", "string"] }
+        },
+        "evidence_source": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "step_assert_timeout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "message", "timeout_ms"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "assert_timeout" },
+        "description": { "type": "string" },
+        "timeout_ms": { "type": "integer", "exclusiveMinimum": 0 },
+        "message": { "type": "string", "minLength": 1 },
+        "evidence_source": { "type": "string", "minLength": 1 },
+        "requires_fault_injection": {
+          "type": "boolean",
+          "default": false,
+          "description": "验证被测 ECU 丢帧行为需故障注入与批准台架；仅监听本机不设为 true"
+        }
+      }
+    },
+
+    "step_inject_fault": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "MVP 预留动作：结构合法但 validate_executable 默认阻断（L2，需人工批准）",
+      "required": ["id", "action", "fault_type", "target", "duration_ms"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "inject_fault" },
+        "description": { "type": "string" },
+        "fault_type": { "enum": ["drop_frame", "corrupt_data", "delay_frames", "error_frame"] },
+        "target": { "type": "string", "minLength": 1 },
+        "duration_ms": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+
+    "step_uds_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "MVP 预留动作（1.2 版本启用）：结构合法但 validate_executable 默认阻断（L3）",
+      "required": ["id", "action", "transport", "service", "timeout_ms"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]{1,64}$" },
+        "action": { "const": "uds_request" },
+        "description": { "type": "string" },
+        "transport": { "enum": ["DoCAN"] },
+        "service": { "type": "string", "pattern": "^(0x)?[0-9A-Fa-f]{2}$" },
+        "payload_hex": { "$ref": "#/$defs/hex_payload" },
+        "timeout_ms": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    }
+  }
+}

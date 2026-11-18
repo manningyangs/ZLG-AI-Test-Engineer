@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "case_id": "INVALID_DLC_MISMATCH",
+  "title": "非法样例：payload 与 DLC 不一致（4 字节载荷声明 dlc=8）",
+  "protocol": { "bus": "CAN", "database": "vehicle.dbc" },
+  "steps": [
+    { "id": "S1", "action": "send_frame", "can_id": 291, "payload_hex": "aabbccdd", "dlc": 8 }
+  ],
+  "execution_policy": { "mode": "offline_only", "risk_level": "L1" },
+  "unconfirmed_items": []
+}

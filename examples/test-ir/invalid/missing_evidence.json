@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "case_id": "INVALID_MISSING_EVIDENCE",
+  "title": "非法样例：断言缺少 evidence_source（无来源阈值）",
+  "protocol": { "bus": "CAN", "database": "vehicle.dbc" },
+  "steps": [
+    { "id": "S1", "action": "assert_range", "signal": "VehicleSpeed", "min": 0, "max": 250 }
+  ],
+  "execution_policy": { "mode": "offline_only", "risk_level": "L0" },
+  "unconfirmed_items": []
+}

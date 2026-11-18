@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "CAN_TX_SUITE",
+  "case_id": "CAN_TX_PERIODIC_001",
+  "title": "受控周期发送 100 次（TC-06）",
+  "project_id": "PROJECT_DEMO",
+  "protocol": { "bus": "CAN", "database": "vehicle.dbc" },
+  "target": { "message": "VehicleSpeed" },
+  "preconditions": [
+    { "action": "device_ready", "channel": 0 },
+    { "action": "listen_only", "enabled": false }
+  ],
+  "steps": [
+    {
+      "id": "S1",
+      "action": "send_periodic",
+      "message_ref": { "message": "VehicleSpeed" },
+      "period_ms": 20,
+      "count": 100,
+      "duration_ms": 3000,
+      "description": "L1 受控发送：需用户确认设备/通道/帧/次数"
+    }
+  ],
+  "execution_policy": {
+    "mode": "offline_then_hardware",
+    "risk_level": "L1",
+    "requires_approval": true,
+    "max_duration_ms": 5000,
+    "max_frames": 100,
+    "target_adapter": "zlgcan",
+    "target_capabilities": ["hardware_periodic_tx"]
+  },
+  "expected_result": "按 20ms 周期完成 100 次发送并记录 TX Echo（设备支持时）；设备不支持硬件定时则执行前阻断",
+  "provenance": { "confirmed_by": "test_engineer_wang" },
+  "expected_evidence": [{ "type": "raw_frame" }, { "type": "log" }],
+  "unconfirmed_items": []
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "BMS_CAN_BASIC",
+  "case_id": "BMS_MSG_TIMEOUT_001",
+  "title": "BMS_Status_1 报文超时监听（TC-05）",
+  "project_id": "PROJECT_DEMO",
+  "protocol": { "bus": "CAN", "database": "bms.dbc" },
+  "target": { "message": "BMS_Status_1" },
+  "preconditions": [{ "action": "device_ready", "channel": 0 }],
+  "steps": [
+    { "id": "S1", "action": "listen_bus", "duration_ms": 5000 },
+    {
+      "id": "S2",
+      "action": "assert_timeout",
+      "message": "BMS_Status_1",
+      "timeout_ms": 300,
+      "evidence_source": "REQ_BMS_CYCLE_100MS",
+      "requires_fault_injection": false
+    }
+  ],
+  "execution_policy": {
+    "mode": "offline_only",
+    "risk_level": "L0",
+    "max_duration_ms": 8000
+  },
+  "expected_result": "监听窗口内报文间隔不超过 300ms；超时时给出最后一帧与超时起止时刻",
+  "provenance": { "requirement_refs": ["REQ_BMS_CYCLE_100MS"] },
+  "unconfirmed_items": []
+}

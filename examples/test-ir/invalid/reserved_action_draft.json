@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "case_id": "INVALID_RESERVED_ACTION",
+  "title": "预留动作样例：结构合法（draft 通过），可执行级必须阻断",
+  "protocol": { "bus": "CAN", "database": "bms.dbc" },
+  "steps": [
+    { "id": "S1", "action": "inject_fault", "fault_type": "drop_frame", "target": "BMS_Status_1", "duration_ms": 500 }
+  ],
+  "execution_policy": { "mode": "offline_only", "risk_level": "L2", "requires_approval": true },
+  "unconfirmed_items": []
+}

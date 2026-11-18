@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "CAN_COMM_SUITE",
+  "case_id": "CAN_COMM_001",
+  "title": "检查 VehicleSpeed 报文周期（TC-02）",
+  "project_id": "PROJECT_DEMO",
+  "priority": "P2",
+  "protocol": { "bus": "CAN", "database": "vehicle.dbc" },
+  "target": { "message": "VehicleSpeed" },
+  "database_refs": [
+    { "asset_id": "dbc_vehicle", "message": "VehicleSpeed", "sha256": "5f2c1f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f" }
+  ],
+  "preconditions": [
+    { "action": "device_ready", "channel": 0 },
+    { "action": "measurement_started" }
+  ],
+  "steps": [
+    { "id": "S1", "action": "listen_bus", "duration_ms": 10000 },
+    {
+      "id": "S2",
+      "action": "assert_cycle",
+      "message": "VehicleSpeed",
+      "expected_period_ms": 20,
+      "tolerance_ms": 2,
+      "evidence_source": "REQ_CAN_CYCLE_001"
+    }
+  ],
+  "execution_policy": {
+    "mode": "offline_only",
+    "risk_level": "L0",
+    "requires_approval": false,
+    "max_duration_ms": 15000,
+    "target_capabilities": ["basic_rx"]
+  },
+  "expected_result": "报文到达周期在 20ms±2ms 内，保留原始帧与三时钟时间戳证据",
+  "provenance": {
+    "requirement_refs": ["REQ_CAN_CYCLE_001"],
+    "rule_version": "junit-1.0"
+  },
+  "expected_evidence": [
+    { "type": "raw_frame" },
+    { "type": "timestamp", "description": "device/host_monotonic/wall_clock 三时钟" }
+  ],
+  "unconfirmed_items": []
+}
