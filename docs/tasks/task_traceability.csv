@@ -1,11 +1,11 @@
 task_id,任务名称,阶段,依赖,状态,仓库现状,证据/备注
-Prompt-00,仓库盘点与执行准备,准备,Prompt-00,Done,docs/tasks/ 已建立,repo_baseline.md 本报告
-P0-01,厂商事项确认,P0,无,Not Started,缺失,需人工向周立功发起；外部阻塞
-P0-02,SDK 开发包获取与环境验证,P0,P0-01(1),Blocked,缺失,预期阻塞：无官方 SDK 包
+Prompt-00,仓库盘点与执行准备,准备,Prompt-00,Done,docs/tasks/ 已建立（第 2 轮盘点）,repo_baseline.md 本轮报告；本地领先 origin 2 提交待推
+P0-01,厂商事项确认,P0,无,Not Started,缺失,需人工发起；本地已有 ZXDoc 手册与安装包可部分复核
+P0-02,SDK 开发包获取与环境验证,P0,P0-01(1),Blocked,缺失,预期阻塞：无官方 zlgcan SDK 包
 P0-03,最小 C++ POC 收发闭环,P0,P0-02+样机,Blocked,缺失,预期阻塞：无 SDK/样机
 P0-04,设备能力实测矩阵,P0,P0-03,Blocked,缺失,预期阻塞：无实机
-P0-05,ZXDoc 集成材料获取,P0,P0-01(6)(7),Not Started,缺失,需人工向周立功发起
-P0-06,分发合规结论,P0,P0-01(8),Not Started,缺失,需人工向周立功发起
+P0-05,ZXDoc 集成材料获取,P0,P0-01(6)(7),Not Started,缺失,本地有 ZXDoc x64 安装包可探索；正式 API 签名待厂商
+P0-06,分发合规结论,P0,P0-01(8),Not Started,缺失,需人工向周立功索取书面许可
 ARCH-01,插件与能力模型契约,P1,无,Not Started,缺失,建议首个代码任务
 CORE-01,Test IR v1 Schema,P1,ARCH-01,Not Started,缺失,
 PLAT-01,桌面应用壳与导航,P1,无,Not Started,缺失,
