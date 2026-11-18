@@ -1,0 +1,55 @@
+VERSION "demo_vehicle 1.0"
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_DEF_DEF_
+	BA_
+	VAL_
+
+BS_:
+
+BU_: ECM BCM GW DOOR
+
+BO_ 256 VehicleStatus: 8 ECM
+ SG_ VehicleSpeed : 7|16@0+ (0.01,0) [0|655.35] "km/h" BCM,GW
+ SG_ EngineRPM : 16|16@1+ (0.25,0) [0|16383.75] "rpm" BCM
+ SG_ EngineTemp : 32|8@1- (1,-40) [-40|215] "degC" BCM
+ SG_ GearPosition : 40|4@1+ (1,0) [0|15] "" BCM,GW
+ SG_ IgnitionState : 44|2@1+ (1,0) [0|3] "" BCM
+ SG_ Odometer : 55|16@0+ (0.1,0) [0|6553.5] "km" BCM,GW
+
+BO_ 2564485392 DoorStatus: 2 DOOR
+ SG_ DriverDoorAjar : 0|1@1+ (1,0) [0|1] "" BCM
+ SG_ PassengerDoorAjar : 1|1@1+ (1,0) [0|1] "" BCM
+ SG_ DoorLockState : 2|2@1+ (1,0) [0|3] "" BCM
+ SG_ SunroofPos : 15|8@0- (1,0) [-128|127] "%" BCM
+
+BO_ 512 WheelSpeeds: 8 GW
+ SG_ WheelFL : 7|16@0+ (0.01,0) [0|655.35] "km/h" ECM
+ SG_ WheelFR : 23|16@0+ (0.01,0) [0|655.35] "km/h" ECM
+ SG_ WheelRL : 32|16@1+ (0.01,0) [0|655.35] "km/h" ECM
+ SG_ WheelRR : 48|16@1- (0.01,0) [-327.68|327.67] "km/h" ECM
+
+CM_ BU_ ECM "Engine control module (synthetic demo)";
+CM_ BU_ BCM "Body control module (synthetic demo)";
+CM_ BU_ GW "Gateway (synthetic demo)";
+CM_ BU_ DOOR "Door control unit (synthetic demo)";
+CM_ BO_ 256 "Vehicle status broadcast, 100ms period (synthetic demo)";
+CM_ SG_ 256 VehicleSpeed "Filtered vehicle speed (synthetic demo)";
+CM_ SG_ 256 GearPosition "Gear selector position (synthetic demo)";
+CM_ BO_ 512 "Wheel speed frame, 20ms period (synthetic demo)";
+CM_ BO_ 2564485392 "Door status, extended id 0x18DAF110 (synthetic demo)";
+
+BA_DEF_ BO_ "GenMsgCycleTime" INT 0 65535;
+BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_DEF_ SG_ "GenSigStartValue" INT 0 65535;
+BA_DEF_DEF_ "GenSigStartValue" 0;
+BA_ "GenMsgCycleTime" BO_ 256 100;
+BA_ "GenMsgCycleTime" BO_ 512 20;
+BA_ "GenSigStartValue" SG_ 256 GearPosition 3;
+
+VAL_ 256 GearPosition 0 "P" 1 "R" 2 "N" 3 "D" 4 "S";
+VAL_ 256 IgnitionState 0 "Off" 1 "Accessory" 2 "Run" 3 "Crank";
+VAL_ 2564485392 DoorLockState 0 "Unlocked" 1 "Locked" 2 "Unknown" 3 "Error";

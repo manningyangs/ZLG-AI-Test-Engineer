@@ -2,6 +2,43 @@
 
 本项目遵循语义化版本；对用户可见的变更记录于此。格式参考 [Keep a Changelog]。
 
+## [0.3.0] - 2026-11-18
+
+P2 首批任务：DATA-01 + VALID-01 + COMP-01 + EXEC-01a + JUDGE-01（离线生成-校验-执行-判定链路打通）。
+
+### 新增
+
+- **DATA-01 DBC Parser**：Protocol-neutral NetworkModel（pydantic）+ DbcParser（底层 cantools 45.2，
+  MIT；输出不含任何三方对象）+ NetworkQueries（按名/ID 查找、decode/encode 纯位运算）；
+  覆盖 intel/motorola、signed、跨字节、Factor/Offset、值表、GenMsgCycleTime/GenSigStartValue；
+  未识别/悬引用等 8 类诊断带行:列定位（含 cantools 静默忽略的 VAL_ 悬引用交叉抓取）；
+  合成样例 demo_vehicle.dbc + 损坏样例；51 项测试；文档 docs/parsers/dbc.md
+  （与外部基准工具对照标注为待人工执行 V 级，未虚构）。
+- **VALID-01 规则校验器**：ValidationContext + 七类执行前检查
+  （工程引用/协议/设备能力/参数/安全授权/资源冲突/计划完备性），
+  ERROR 必含修正建议；未知能力=阻断；L4 恒阻断；降级 WARNING 不升级；32 项测试。
+- **COMP-01 计划编译器**：Test IR → 确定性 Mock 执行计划（10 顶层键固定形状、assert 殿后、
+  cleanup 四件套、canonical json 哈希 ir_hash/plan_hash、无 LLM 无 IO）；23 项测试。
+- **JUDGE-01 确定性断言引擎**：cycle/range/enum/timeout 四类纯函数判定；
+  证据不足 Blocked 绝不 Pass（含"观察窗 < 超时阈值"禁误判）；失败类别
+  DUT/TestScript/AdapterDevice/Environment/Inconclusive；inputs_digest 可复算；21 项测试。
+- **EXEC-01a 执行编排器 + PlanRunner**：14 态状态机（迁移白名单+追加式审计）、
+  审批门（L1+ 未审批不触达设备）、跨线程取消、message_ref→CAN ID 执行侧解析（禁猜测）、
+  虚拟时间证据采集、判定接线（AI 只解释不改判）、run_id 唯一不覆盖、
+  清理失败单独记录；21 项测试。
+- **端到端集成**（tests/integration/test_exec_pipeline.py，9 项）：样例 IR → VALID → 真编译 →
+  Mock 执行 → 判定全链路；DBC 周期属性（GenMsgCycleTime）直接驱动场景与断言阈值的接线验证。
+
+### 依赖
+
+- 新增 cantools>=39.0（MIT）：DBC 解析底层实现，用途/许可已在 pyproject 注明。
+
+### 已知限制
+
+- 信号类断言（range/enum）的 decoder 注入已就绪，NetworkModel→decoder 的完整装配属于 P2-D/UI 集成。
+- 与 CANdb++ 等外部基准工具的 DBC 对照待人工执行（本机无授权工具）。
+- SIG_VALTYPE_/复用信号等高级 DBC 特性按警告降级，不建模。
+
 ## [0.2.0] - 2026-11-18
 
 P1 第二批任务：CORE-01 + MOCK-01 + HOST-01。
