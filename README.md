@@ -58,7 +58,7 @@ py -m venv .venv
 .\scripts\dev.ps1         # launch desktop app (Windows)
 ```
 
-Status: **P2 complete (implementation)** — ARCH-01 through REPORT-01, AI eval set, AI-01/02 all done (389 tests; see `docs/tasks/task_status.md`). Pending: real-model eval run (needs API key) + P0 vendor answers for hardware line.
+Status: **P2 complete (implementation + real-model eval)** — all tasks through AI-01/02 done; 389 tests + DeepSeek eval 12/12×2 (see `docs/tasks/p2_acceptance_report.md`). Pending: manual UI walkthrough + P0 vendor answers for the hardware line.
 
 ### License
 
@@ -118,7 +118,7 @@ py -m venv .venv
 .\scripts\dev.ps1         # 启动桌面应用（Windows）
 ```
 
-进度：**P2 实现层全部完成**（P1 + DATA/VALID/COMP/EXEC/JUDGE/UI-01/UI-02/REPORT-01 + 评测集 + AI-01/02，389 项测试）。待实测：真实模型评测跑批（需 API Key）；P0 厂商答复到位前不接入真实硬件 SDK。
+进度：**P2 完成（实现+真实模型实测）**——全部任务 Done，389 项测试 + DeepSeek 评测两次 12/12。剩余：有显示器人工 UI 走查、P0 厂商答复（解锁硬件线）。
 
 ### 许可
 

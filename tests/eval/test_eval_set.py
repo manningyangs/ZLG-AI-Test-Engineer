@@ -287,7 +287,7 @@ class TestEvaluatorDirection:
         assert outcome.passed, [c for c in outcome.failed_checks]
 
     def test_always_refuse_partitions_directions(self, eval_set):
-        """拒绝型生成器：must=yes 全挂（produced 检查）；must=no/flagged 全过。"""
+        """拒绝型生成器：must=yes 全挂（produced 检查）；no/flagged/block_or_refuse 全过。"""
         report = evaluate_suite(eval_set, RefusingGenerator())
         for outcome in report.outcomes:
             exp = next(c.expect for c in eval_set.cases if c.id == outcome.case_id)

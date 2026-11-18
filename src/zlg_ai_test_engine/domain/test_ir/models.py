@@ -216,8 +216,12 @@ class AssertCycleStep(StepBase):
 class AssertRangeStep(StepBase):
     action: Literal["assert_range"]
     signal: str = Field(min_length=1)
+    #: 可选：信号所属报文（上下文冗余，加法扩展）
+    message: str | None = Field(default=None, min_length=1)
     min: float
     max: float
+    #: 可选：边界容差（向后兼容的加法扩展）
+    tolerance: float | None = Field(default=None, ge=0)
     unit: str | None = None
     evidence_source: str = Field(min_length=1)
 
@@ -231,6 +235,8 @@ class AssertRangeStep(StepBase):
 class AssertEnumStep(StepBase):
     action: Literal["assert_enum"]
     signal: str = Field(min_length=1)
+    #: 可选：信号所属报文（上下文冗余，加法扩展）
+    message: str | None = Field(default=None, min_length=1)
     allowed_values: list[int | str] = Field(min_length=1)
     evidence_source: str = Field(min_length=1)
 

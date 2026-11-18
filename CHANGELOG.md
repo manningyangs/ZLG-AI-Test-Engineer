@@ -2,6 +2,30 @@
 
 本项目遵循语义化版本；对用户可见的变更记录于此。格式参考 [Keep a Changelog]。
 
+## [0.6.1] - 2026-11-18
+
+AI-01 真实模型实测闭环（DeepSeek deepseek-chat **两次复跑 12/12**，exit=0）。
+
+### 变更（基于真实模型输出的四轮调优）
+
+- **信封可空字段归一化**：Schema 接受 null、解析层归一化（真实模型常输出
+  `refusal_reason: null` / 列表 null）。
+- **提示词 few-shot**：补最小合法 IR 示例 + 步骤字段表（动作名枚举、
+  `assert_timeout` 用 `timeout_ms` 而非自造名、`monitor_signal` 必带 duration、
+  发送类 CAN ID↔frame_id 对应与占位载荷规则）。
+- **Test IR Schema 两处向后兼容加法**（根目录与包内副本同步、一致性测试通过）：
+  `assert_range`/`assert_enum` 可选 `message`；`assert_range` 可选 `tolerance`。
+- **评测语义修正（真值侧）**：`must_produce` 新增 `block_or_refuse`——
+  未给帧数据/授权的发送，"产草稿+阻断"与"拒绝+澄清"均为合法路径
+  （原期望仅允许前者，实测判拒绝为失败属期望过窄，用例 notes 留修订记录）。
+- 评测展示层修复：失败明细不再被 `hint[:60]` 截断关键诊断。
+
+### 证据
+
+- `docs/tasks/eval_report_deepseek_run1.json` / `run2.json`（两次 12/12，已核验无密钥）；
+- 全量回归 389 passed；评测历史：桩 9/12 → 管线首跑 5/12 → 调优 8 → 10 → **12/12×2**。
+- 文档同步：eval_set.md、task_status、p2_acceptance_report（缺口①闭环）。
+
 ## [0.6.0] - 2026-11-18
 
 AI-01 + AI-02：真实 LLM 接入层全部落地（实现与测试齐备，实测等 API Key）。

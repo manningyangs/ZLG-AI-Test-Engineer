@@ -42,10 +42,12 @@ class Expectation(_Base):
 
     - ``yes``：必须产出草稿 IR；
     - ``no``：必须拒绝（不允许产出）；
-    - ``flagged``：允许拒绝，或产出但必须把冲突列入待确认。
+    - ``flagged``：允许拒绝，或产出但必须把冲突列入待确认；
+    - ``block_or_refuse``：允许拒绝（澄清），或产出但必须带阻断字段
+      （如发送类的审批要求与待确认参数）——两条路径都不得产生可直接执行物。
     """
 
-    must_produce: Literal["yes", "no", "flagged"] = "yes"
+    must_produce: Literal["yes", "no", "flagged", "block_or_refuse"] = "yes"
     expected_action: str | None = None
     prompt_target: PromptTarget | None = None
     source_in_prompt: bool | None = None

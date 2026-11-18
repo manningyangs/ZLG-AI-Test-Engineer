@@ -282,6 +282,26 @@ def evaluate_case(case: EvalCase, generator: Generator) -> CaseOutcome:
         checks.extend(_check_flagged(case, out))
         return CaseOutcome(case.id, case.category, all(c.passed for c in checks), checks)
 
+    if exp.must_produce == "block_or_refuse":
+        # 两条合法路径：拒绝澄清（refused + 可选关键词），或产出且阻断字段齐备
+        if not out.produced or out.ir is None:
+            checks.extend(_check_refused(case, out))
+            return CaseOutcome(case.id, case.category, all(c.passed for c in checks), checks)
+        checks.append(_check_produced(out))
+        ir = out.ir
+        draft_check = validate_ir(ir)
+        checks.append(
+            CheckResult("schema_valid", draft_check.ok,
+                        "；".join(d.message for d in draft_check.errors[:3]))
+        )
+        if exp.draft_must_have_unconfirmed:
+            checks.append(_check_unconfirmed(case, out))
+        if exp.send_requires_approval:
+            checks.append(_check_send_approval(case, out))
+        checks.append(_check_confirmed_executable(out))
+        return CaseOutcome(case.id, case.category,
+                           all(c.passed for c in checks if not c.skipped), checks)
+
     # must_produce == "yes"
     checks.append(_check_produced(out))
     if not checks[0].passed:

@@ -187,7 +187,15 @@ class GenerationService:
             data = json.loads(cleaned)
         except json.JSONDecodeError:
             return None
-        return data if isinstance(data, dict) else None
+        if not isinstance(data, dict):
+            return None
+        # 归一化：真实模型常把可选字段输出为 null
+        for key in ("read_from_asset", "inferred_suggestions", "requires_confirmation"):
+            if data.get(key) is None:
+                data[key] = []
+        if data.get("refusal_reason") is None:
+            data["refusal_reason"] = ""
+        return data
 
     def _post_gates(
         self,

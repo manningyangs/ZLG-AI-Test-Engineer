@@ -45,7 +45,14 @@ send_requires_approval / confirmed_executable(skip 若无定稿)`
 
 **AI-01 管线基线（强假 LLM 走真实管线，2026-11-18）：12/12（100%）**——桩的 3 个缺口
 全部由管线后置门关闭，证明期望在 AI-01 下可达（`tests/eval/test_ai_eval_llm.py`）。
-真实模型跑批：`scripts/eval_ai.py --generator llm`（需 API Key，无已知缺口豁免）。
+
+**真实模型实测（DeepSeek deepseek-chat，2026-11-18）：两次复跑均 12/12（100%），exit=0**——
+AI-01 验收证据闭环。证据归档：`docs/tasks/eval_report_deepseek_run1.json` /
+`eval_report_deepseek_run2.json`（无密钥，已核验）。
+调优过程（详见 CHANGELOG 0.6.1）：信封可空字段归一化 → few-shot 最小 IR 示例 →
+动作名/步骤字段表 → Test IR Schema 两处**向后兼容加法**（assert_range/enum 可选 message、
+assert_range 可选 tolerance）→ 用例期望修正（N_SEND_UNSAFE 双合法路径 block_or_refuse）。
+复跑命令：`scripts/eval_ai.py --generator llm`（无已知缺口豁免，任何失败 exit 1）。
 
 ## 接入真实 LLMProvider（AI-01）
 

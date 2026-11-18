@@ -2,8 +2,8 @@
 
 **更新：** 2026-11-18（Prompt 00 + P1 两批 + P2 全部 + P0 文档线 + 评测集 + AI-01/02 实现）
 
-**P2 阶段状态：全部任务 Done（实现层）**；唯一待实测项 = 真实模型评测跑批（等 API Key）。
-**验收对照：** 见 [p2_acceptance_report.md](p2_acceptance_report.md)（TC-01~07 全通过( Mock 层)、P2 退出条件 3/3、§15.1 部分硬件项随 P3）。
+**P2 阶段状态：全部任务 Done（含真实模型实测）**。
+**验收对照：** 见 [p2_acceptance_report.md](p2_acceptance_report.md)（TC-01~07 全通过( Mock 层)、P2 退出条件 3/3、§15.1 部分硬件项随 P3；缺口①真实模型跑批已闭环）。
 
 | 任务 ID | 状态 | 提交/证据 | 阻塞/备注 |
 |---|---|---|---|
@@ -27,7 +27,7 @@
 | P0-06 | Done（初版） | docs/security/licensing_and_distribution.md | D 级 p1 原文已回填；Q8 书面答复后升版 |
 | P0-02/03/04 | Blocked | — | 等 Q1/Q2 答复（SDK 包+样机） |
 | AI-评测前置 | Done | examples/ai_eval/、ai_eval/*、tests/eval（15）、scripts/eval_ai.py、docs/ai/eval_set.md | 桩基线 9/12，3 缺口钉住 |
-| AI-01 | Done（实现） | ai/{prompt_builder,generation_service}.py、plugins/llm_providers/*、tests（13+40） | 五道后置门；强假 LLM 评测 12/12；**真实模型跑批待 API Key** |
+| AI-01 | **Done** | ai/*、plugins/llm_providers/*、tests（13+40） | 五道后置门；**真实 DeepSeek 实测两次 12/12**（eval_report_deepseek_run1/2.json） |
 | AI-02 | Done（实现） | ai/context_snapshot.py、tests（6）、docs/ai/generation_pipeline.md | 快照 stale + 外发过滤 |
 | P3+ | Blocked / Deferred | — | P0 Go/No-Go 前不接真实 SDK |
 
