@@ -1,6 +1,6 @@
 # 任务状态追踪（task_status）
 
-**更新：** 2026-11-18（Prompt 00 + P1 两批 + P2 首批 + P2-D + P0 文档线 P0-01/05/06）
+**更新：** 2026-11-18（Prompt 00 + P1 两批 + P2 首批 + P2-D + P0 文档线 + 评测集前置）
 
 | 任务 ID | 状态 | 提交/证据 | 阻塞/备注 |
 |---|---|---|---|
@@ -23,10 +23,11 @@
 | P0-05 | Done（登记） | docs/device/{zxdoc_api_gap,manual_evidence_notes}.md | 40 项四态：19 已确认/16 待实测/5 未找到；实体材料 9 项未获取（M1~M9） |
 | P0-06 | Done（初版） | docs/security/licensing_and_distribution.md | D 级 p1 原文已回填；Q8 书面答复后升版 |
 | P0-02/03/04 | Blocked | — | 等 Q1/Q2 答复（SDK 包+样机） |
-| AI-01/02 | Not Started | — | 需模型 Provider 与 API Key（用户侧） |
+| AI-评测前置 | Done | examples/ai_eval/、ai_eval/*、tests/eval（15）、scripts/eval_ai.py、docs/ai/eval_set.md | 桩基线 9/12，3 缺口钉住 |
+| AI-01/02 | Not Started | — | 需模型 Provider 与 API Key（用户侧）；评测集已就绪待复跑 |
 | P3+ | Blocked / Deferred | — | P0 Go/No-Go 前不接真实 SDK |
 
-**测试基线：** `pytest tests` = **310 passed**（contract 24 / unit 237 / ui 30 / integration 19）。
+**测试基线：** `pytest tests` = **325 passed**（contract 24 / unit 237 / ui 30 / integration 19 / eval 15）。
 离屏真实启动 SMOKE_OK；HTML 报告真实导出验证通过。
 
 **未解决：** 代理网络不稳（push 偶发 TLS 失败）；有显示器 UI 人工走查未做；

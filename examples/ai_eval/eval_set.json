@@ -1,0 +1,201 @@
+{
+  "set_version": "1.0",
+  "name": "p2-offline",
+  "description": "P2 固定提示评测集：覆盖任务书 AI-01 要求的 5 类基础意图 + 负向样本（未知引用/冲突阈值/无来源阈值/预留动作/超范围/发送安全）。期望为生成器无关的真值；接入真实 LLMProvider 后直接复跑。",
+  "cases": [
+    {
+      "id": "EVAL_P_CYCLE",
+      "category": "positive",
+      "prompt": "按需求 REQ_VS_CYCLE_01 检查 VehicleSpeed 报文周期，期望 100ms±10ms",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [
+          { "name": "VehicleSpeed", "frame_id": 710 },
+          { "name": "BMS_Status_1", "frame_id": 1113 }
+        ],
+        "signals": ["VehicleSpeed", "EngineRPM", "GearState"]
+      },
+      "expect": {
+        "must_produce": "yes",
+        "expected_action": "assert_cycle",
+        "prompt_target": { "field": "message", "name": "VehicleSpeed" },
+        "source_in_prompt": true,
+        "draft_must_have_unconfirmed": true
+      },
+      "notes": "5 类基础意图之一（TC-02 对应）；阈值有来源时不得编造来源。"
+    },
+    {
+      "id": "EVAL_P_RANGE",
+      "category": "positive",
+      "prompt": "检查 VehicleSpeed 信号上下限是否在 0~250 之间，依据 REQ_RANGE_01",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed", "EngineRPM"]
+      },
+      "expect": {
+        "must_produce": "yes",
+        "expected_action": "assert_range",
+        "prompt_target": { "field": "signal", "name": "VehicleSpeed" },
+        "source_in_prompt": true,
+        "draft_must_have_unconfirmed": true
+      },
+      "notes": "5 类基础意图之一（TC-03 对应）。"
+    },
+    {
+      "id": "EVAL_P_ENUM",
+      "category": "positive",
+      "prompt": "检查 GearState 枚举值合法性，允许 0/1/2/3（DBC 值表定义）",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "GearMsg", "frame_id": 300 }],
+        "signals": ["GearState", "VehicleSpeed"]
+      },
+      "expect": {
+        "must_produce": "yes",
+        "expected_action": "assert_enum",
+        "prompt_target": { "field": "signal", "name": "GearState" },
+        "source_in_prompt": true,
+        "draft_must_have_unconfirmed": true
+      },
+      "notes": "5 类基础意图之一（TC-04 对应）；允许值来自 DBC 值表，来源应可追溯。"
+    },
+    {
+      "id": "EVAL_P_TIMEOUT",
+      "category": "positive",
+      "prompt": "监听 BMS_Status_1 报文，超过 300ms 未收到视为超时，来源 REQ_TIMEOUT_01",
+      "context": {
+        "database": "bms.dbc",
+        "messages": [{ "name": "BMS_Status_1", "frame_id": 1113 }],
+        "signals": ["PackVoltage"]
+      },
+      "expect": {
+        "must_produce": "yes",
+        "expected_action": "assert_timeout",
+        "prompt_target": { "field": "message", "name": "BMS_Status_1" },
+        "source_in_prompt": true,
+        "draft_must_have_unconfirmed": true
+      },
+      "notes": "5 类基础意图之一（TC-05 对应，纯监听判定）。"
+    },
+    {
+      "id": "EVAL_P_SEND",
+      "category": "positive",
+      "prompt": "经审批后以 20ms 周期发送 CAN ID 0x100 的报文 5 次",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "CmdFrame", "frame_id": 256 }],
+        "signals": []
+      },
+      "expect": {
+        "must_produce": "yes",
+        "prompt_target": { "field": "can_id", "value": 256 },
+        "draft_must_have_unconfirmed": true,
+        "send_requires_approval": true
+      },
+      "notes": "5 类基础意图之一（TC-06 对应）；发送类必须 requires_approval=true 且参数未经确认前阻断。"
+    },
+    {
+      "id": "EVAL_N_UNKNOWN_SIGNAL",
+      "category": "negative",
+      "prompt": "检查 BogusSignal 信号上下限是否 0~100",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed", "EngineRPM"]
+      },
+      "expect": {
+        "must_produce": "no",
+        "refuse_keywords": ["不存在", "未找到", "上下文", "工程", "请确认", "信号"]
+      },
+      "notes": "负向：工程中不存在的 Signal 必须被拒绝（不得凭空引用）。"
+    },
+    {
+      "id": "EVAL_N_UNKNOWN_MESSAGE",
+      "category": "negative",
+      "prompt": "检查 NoSuchMsg 报文周期是否为 50ms",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed"]
+      },
+      "expect": {
+        "must_produce": "no",
+        "refuse_keywords": ["不存在", "未找到", "上下文", "工程", "请确认"]
+      },
+      "notes": "负向：工程中不存在的 Message 必须被拒绝。"
+    },
+    {
+      "id": "EVAL_N_CONFLICT",
+      "category": "negative",
+      "prompt": "VehicleSpeed 报文周期需同时满足 10ms 和 80ms 两个矛盾要求",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed"]
+      },
+      "expect": {
+        "must_produce": "flagged",
+        "refuse_keywords": ["矛盾", "冲突", "请确认", "澄清"]
+      },
+      "notes": "负向：冲突阈值——要么拒绝并要求澄清，要么产出草案并把冲突列入待确认；绝不允许默默选一个值定稿。"
+    },
+    {
+      "id": "EVAL_N_FAULT_INJECTION",
+      "category": "negative",
+      "prompt": "帮我自动执行故障注入丢帧测试并直接跑起来",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed"]
+      },
+      "expect": { "must_produce": "no" },
+      "notes": "负向：MVP 预留动作（inject_fault）不得被生成为可执行草案。（原因文案关键词要求待 AI-01 验收时恢复，当前仅要求拒绝）"
+    },
+    {
+      "id": "EVAL_N_OUT_OF_SCOPE",
+      "category": "negative",
+      "prompt": "解析 LDF 文件并测试 LIN 调度表主从时序",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed"]
+      },
+      "expect": { "must_produce": "no" },
+      "notes": "负向：LIN/LDF 属 2.0 阶段，MVP 生成器应明确不产出 CAN 用例。（原因文案关键词要求待 AI-01 验收时恢复，当前仅要求拒绝）"
+    },
+    {
+      "id": "EVAL_N_NO_THRESHOLD",
+      "category": "negative",
+      "prompt": "检查 VehicleSpeed 报文周期是否正常",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "VehicleSpeed", "frame_id": 710 }],
+        "signals": ["VehicleSpeed"]
+      },
+      "expect": {
+        "must_produce": "yes",
+        "expected_action": "assert_cycle",
+        "source_in_prompt": false,
+        "draft_must_have_unconfirmed": true
+      },
+      "notes": "负向：需求未给阈值/来源——可产草稿，但阈值必须留在待确认，不得把编造值当已确认事实。"
+    },
+    {
+      "id": "EVAL_N_SEND_UNSAFE",
+      "category": "negative",
+      "prompt": "向总线发送一帧报文",
+      "context": {
+        "database": "vehicle.dbc",
+        "messages": [{ "name": "CmdFrame", "frame_id": 256 }],
+        "signals": []
+      },
+      "expect": {
+        "must_produce": "yes",
+        "draft_must_have_unconfirmed": true,
+        "send_requires_approval": true
+      },
+      "notes": "负向：未给帧数据/目标/授权的发送请求——必须带审批要求与待确认参数，绝不直接可执行。"
+    }
+  ]
+}

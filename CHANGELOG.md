@@ -2,6 +2,30 @@
 
 本项目遵循语义化版本；对用户可见的变更记录于此。格式参考 [Keep a Changelog]。
 
+## [0.5.0] - 2026-11-18
+
+P2 评测前置：AI-01 固定提示评测集（离线可跑，LLM 接入后直接复跑对比）。
+
+### 新增
+
+- **评测集** `examples/ai_eval/eval_set.json`（12 用例）：5 类基础意图正向
+  （周期/范围/枚举/超时/发送）+ 7 负向（上下文外信号/报文、冲突阈值、MVP 预留动作、
+  超范围 LIN、无来源阈值、未授权发送）；期望为生成器无关真值，含 prompt_target、
+  来源抗编造、待确认阻断、发送审批等检查开关。
+- **评测框架** `src/zlg_ai_test_engine/ai_eval/`：用例模型（pydantic 结构校验）、
+  12 项命名检查（produced/refused/conflict_flagged/schema_valid/action_match/
+  target_from_prompt/refs_in_context/no_fabricated_source/draft_unconfirmed/
+  send_requires_approval/confirmed_executable…）、逐检查项明细报告；
+  StubGenerator/RefusingGenerator 适配器；Generator 协议供未来 LLMProvider 复用。
+- **跑批 CLI** `scripts/eval_ai.py`：表格+JSON 报告，失败 ⊆ 已知缺口返回 0，--strict 全过才算。
+- **文档** `docs/ai/eval_set.md`：格式、检查字典、基线、LLM 接入方法。
+
+### 基线与钉住
+
+- 离线桩基线 **9/12（75%）**；3 个已知缺口 = 关键词桩不读工程上下文/不识别冲突
+  （`STUB_KNOWN_GAPS` 由测试钉住，桩行为变化或 AI-01 补齐即提示）。
+- 评测器方向自检：oracle 全过、拒绝型生成器正负向分区正确（15 项测试）。
+
 ## [0.4.1] - 2026-11-18
 
 P0 文档线：P0-01 + P0-05 + P0-06（外部依赖书面化，纯文档交付）。
