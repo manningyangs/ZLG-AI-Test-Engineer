@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zlg-ai-test-engineer.local/schemas/plugin-manifest/v1",
+  "title": "ZLG AI Test Engineer Plugin Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "api_version", "license", "capabilities", "entrypoint"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$",
+      "description": "插件唯一标识（小写字母/数字/下划线/连字符）"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+([-.][0-9A-Za-z.-]+)?$",
+      "description": "插件自身语义化版本"
+    },
+    "api_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "所针对的插件契约 API 版本（major 必须与宿主一致）"
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPDX 或项目内许可标识，如 AGPL-3.0-only"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "插件声明的能力标识（供注册与能力矩阵展示）"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "default": [],
+      "description": "依赖的其他插件 id"
+    },
+    "entrypoint": {
+      "type": "string",
+      "minLength": 1,
+      "description": "入口对象，如 module:ClassName"
+    }
+  }
+}

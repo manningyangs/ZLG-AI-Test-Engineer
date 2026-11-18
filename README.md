@@ -47,6 +47,18 @@ DBC-driven CAN/CAN FD communication tests: cycle monitoring, signal range, enum 
 
 - `ZLG_AI_Test_Engineer_产品需求与技术架构及项目开发计划_V1.0.docx` — PRD, architecture, and project plan
 - `ZLG_AI_Test_Engineer_开发任务拆解_V1.0.md` — development task breakdown (P0–P6)
+- `ZLG_AI_Test_Engineer_Trae_可执行开发任务书_V1.0.md` — executable task book for staged delivery
+
+### Development
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\scripts\test.ps1        # run all tests
+.\scripts\dev.ps1         # launch desktop app (Windows)
+```
+
+Status: P1 in progress (ARCH-01 + PLAT-01/02/03 done, see `docs/tasks/task_status.md`). No real hardware SDK integration before P0 vendor validation.
 
 ### License
 
@@ -95,6 +107,18 @@ DBC 驱动的 CAN/CAN FD 通信测试：报文周期、信号范围、枚举值�
 
 - `ZLG_AI_Test_Engineer_产品需求与技术架构及项目开发计划_V1.0.docx` — 产品需求、总体架构与开发计划
 - `ZLG_AI_Test_Engineer_开发任务拆解_V1.0.md` — P0–P6 开发任务拆解
+- `ZLG_AI_Test_Engineer_Trae_可执行开发任务书_V1.0.md` — 分阶段可执行任务书
+
+### 开发
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\scripts\test.ps1        # 运行全部测试
+.\scripts\dev.ps1         # 启动桌面应用（Windows）
+```
+
+进度：P1 进行中（ARCH-01 与 PLAT-01/02/03 已完成，见 `docs/tasks/task_status.md`）；P0 厂商验证完成前不接入真实硬件 SDK。
 
 ### 许可
 
