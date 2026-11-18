@@ -1,0 +1,51 @@
+task_id,任务名称,阶段,依赖,状态,仓库现状,证据/备注
+Prompt-00,仓库盘点与执行准备,准备,Prompt-00,Done,docs/tasks/ 已建立,repo_baseline.md 本报告
+P0-01,厂商事项确认,P0,无,Not Started,缺失,需人工向周立功发起；外部阻塞
+P0-02,SDK 开发包获取与环境验证,P0,P0-01(1),Blocked,缺失,预期阻塞：无官方 SDK 包
+P0-03,最小 C++ POC 收发闭环,P0,P0-02+样机,Blocked,缺失,预期阻塞：无 SDK/样机
+P0-04,设备能力实测矩阵,P0,P0-03,Blocked,缺失,预期阻塞：无实机
+P0-05,ZXDoc 集成材料获取,P0,P0-01(6)(7),Not Started,缺失,需人工向周立功发起
+P0-06,分发合规结论,P0,P0-01(8),Not Started,缺失,需人工向周立功发起
+ARCH-01,插件与能力模型契约,P1,无,Not Started,缺失,建议首个代码任务
+CORE-01,Test IR v1 Schema,P1,ARCH-01,Not Started,缺失,
+PLAT-01,桌面应用壳与导航,P1,无,Not Started,缺失,
+PLAT-02,项目服务与本地存储,P1,ARCH-01,Not Started,缺失,
+PLAT-03,配置中心与审计日志,P1,无,Not Started,缺失,
+MOCK-01,Mock/Offline Adapter v1,P1,ARCH-01,Not Started,缺失,
+HOST-01,Native Host 进程框架,P1,ARCH-01,Not Started,缺失,Fake Host；不加载真实 DLL
+DATA-01,DBC Parser,P2,ARCH-01,Not Started,缺失,依赖授权 DBC 样本
+AI-01,需求到 Test IR 生成,P2,CORE-01+DATA-01,Not Started,缺失,需模型 Provider 与密钥
+AI-02,RAG 与上下文管理,P2,AI-01,Not Started,缺失,
+VALID-01,规则校验器,P2,CORE-01+DATA-01,Not Started,缺失,七类执行前检查
+COMP-01,IR 编译器（Mock 后端）,P2,CORE-01+MOCK-01,Not Started,缺失,
+EXEC-01a,执行编排器（Mock 版）,P2,COMP-01,Not Started,缺失,状态机+审计
+JUDGE-01,确定性断言引擎,P2,EXEC-01a,Not Started,缺失,无证据不得 Pass
+UI-01,AI 工作台与用例编辑器,P2,AI-01+DATA-01,Not Started,缺失,
+UI-02,运行监控与结果页,P2,EXEC-01a+JUDGE-01,Not Started,缺失,
+REPORT-01,结果与证据归档,P2,JUDGE-01,Not Started,缺失,HTML/PDF 首期
+SDK-01,ZLG Native Host 设备管理,P3,P0-02/03+HOST-01,Blocked,缺失,等待官方 SDK 与样机
+SDK-02,RX Pipeline,P3,SDK-01,Blocked,缺失,
+SDK-03,Capability Profile 运行时,P3,SDK-01,Blocked,缺失,
+SDK-04,TX 调度,P3,SDK-02+SDK-03,Blocked,缺失,
+COMP-02,IR 到 ZLGCAN 执行计划编译,P3,SDK-04+COMP-01,Blocked,缺失,
+EXEC-01b,硬件执行编排接入,P3,SDK-01+EXEC-01a,Blocked,缺失,
+UI-03,设备与适配器管理页,P3,SDK-03,Blocked,缺失,
+P3-验收,实机验收 TC-02/03/05/06/07,P3,以上全部,Blocked,缺失,需选定设备型号
+ZXDOC-01,ZXDoc API Adapter,P4,P0-05,Blocked,缺失,
+ZXDOC-02,ZXDoc Python Script Backend,P4,P0-05,Blocked,缺失,
+ZXDOC-03,ZCP/ZCPC 工程导入,P4,PLAT-02,Blocked,缺失,
+UDS-01,ODX/PDX Parser,P4,ARCH-01,Not Started,缺失,可先接口设计
+UDS-02,DoCAN 诊断执行,P4,SDK-03+P0-01(5),Blocked,缺失,
+UDS-03,UDS 用例库与台架验证,P4,UDS-02,Blocked,缺失,
+PROTO-LIN,LIN/DoLIN + LDF,P5,插件契约+设备能力,Deferred,缺失,按客户场景立项
+PROTO-ETH,Ethernet/DoIP/SOME-IP + ARXML,P5,插件契约+设备能力,Deferred,缺失,按客户场景立项
+PROTO-XCP,XCP/CCP + A2L,P5,插件契约+设备能力,Deferred,缺失,按客户场景立项
+PROTO-J1939,J1939,P5,插件契约+设备能力,Deferred,缺失,按客户场景立项
+PROTO-E2E,E2E 保护算法,P5,插件契约+项目配置,Deferred,缺失,按客户场景立项
+REPLAY-01,历史记录回放（ASC 或 MF4 先行）,P5,AssetParser 契约,Deferred,缺失,按需求扩展
+PROD-01,安装与运维,P6,MVP 验收,Not Started,缺失,
+PROD-02,企业权限与脱敏,P6,MVP 验收,Not Started,缺失,
+PROD-03,知识库与模板,P6,MVP 验收,Not Started,缺失,
+PROD-04,许可合规审查,P6,P0-06,Not Started,缺失,
+PROD-05,多厂商设备适配预留,P6,DeviceSDKAdapter 契约,Deferred,缺失,仅验证抽象可扩展性
+PROD-06,企业试点,P6,PROD-01~05,Deferred,缺失,需真实客户场景
